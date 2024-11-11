@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de Cachorros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+        }
+        .action-button {
+            margin-right: 5px;
+        }
+
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 60px;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .modal-content input, .modal-content button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .modal-content button {
+            background-color: #28a745;
+            color: white;
+        }
+        .modal-content button:hover {
+            background-color: #218838;
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 25px;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tabela de Cachorros</h1>
+
+    
+    <button onclick="openModal()">Adicionar Cachorro</button>
+
+    
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Adicionar Novo Cachorro</h2>
+            <input type="text" id="nomeCachorro" placeholder="Nome do Cachorro" required>
+            <input type="text" id="nomeDono" placeholder="Nome do Dono(a)" required>
+            <input type="text" id="telefone" placeholder="Telefone" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="text" id="imagem" placeholder="URL da Imagem" required>
+            <button onclick="adicionarCachorro()">Adicionar Cachorro</button>
+        </div>
+    </div>
+
+    
+    <table id="tabelaCachorros">
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                <th>Nome do Cachorro</th>
+                <th>Nome do Dono(a)</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+
+    <script>
+        // Função para carregar os dados da API "READ"
+        function carregarDados() {
+            fetch('https://run.mocky.io/v3/c8cc217b-a552-4ebd-94e5-72640560de47')
+                .then(response => response.json())
+                .then(data => {
+                    const tabela = document.getElementById('tabelaCachorros').getElementsByTagName('tbody')[0];
+                    tabela.innerHTML = '';
+
+                    data.forEach(cachorro => {
+                        
+                        const linha = tabela.insertRow();
+
+                        
+                        const celulaImagem = linha.insertCell();
+                        const img = document.createElement('img');
+                        img.src = cachorro.imagem;
+                        celulaImagem.appendChild(img);
+
+                        // Colocar o nome do cachorro
+                        const celulaNomeCachorro = linha.insertCell();
+                        celulaNomeCachorro.textContent = cachorro.cachorro;
+
+                        // Colocar o nome do dono
+                        const celulaNomeDono = linha.insertCell();
+                        celulaNomeDono.textContent = cachorro.dono;
+
+                        // Colocar o telefone
+                        const celulaTelefone = linha.insertCell();
+                        celulaTelefone.textContent = cachorro.telefone;
+
+                        // Colocar o email
+                        const celulaEmail = linha.insertCell();
+                        celulaEmail.textContent = cachorro.email;
+
+                        // Colocar as ações
+                        const celulaAcoes = linha.insertCell();
+                        const divAcoes = document.createElement('div');
+                        divAcoes.className = 'actions';
+
+                        // Botões de ação: Editar e Excluir
+                        const btnEditar = document.createElement('button');
+                        btnEditar.className = 'action-button';
+                        btnEditar.textContent = 'Editar';
+                        btnEditar.onclick = function() {
+                            editarCachorro(cachorro);
+                        };
+
+                        const btnExcluir = document.createElement('button');
+                        btnExcluir.className = 'action-button';
+                        btnExcluir.textContent = 'Excluir';
+                        btnExcluir.onclick = function() {
+                            excluirCachorro(linha);
+                        };
+
+                        divAcoes.appendChild(btnEditar);
+                        divAcoes.appendChild(btnExcluir);
+                        celulaAcoes.appendChild(divAcoes);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar os dados:', error);
+                });
+        }
+
+        // Função para adicionar um cachorro "CREATE"
+        function adicionarCachorro() {
+            const nomeCachorro = document.getElementById('nomeCachorro').value;
+            const nomeDono = document.getElementById('nomeDono').value;
+            const telefone = document.getElementById('telefone').value;
+            const email = document.getElementById('email').value;
+            const imagem = document.getElementById('imagem').value;
+
+            if (!nomeCachorro || !nomeDono || !telefone || !email || !imagem) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            // Adicionar o novo cachorro na tabela
+            const tabela = document.getElementById('tabelaCachorros').getElementsByTagName('tbody')[0];
+
+            // Criar uma nova linha
+            const linha = tabela.insertRow();
+
+            // Colocar a imagem
+            const celulaImagem = linha.insertCell();
+            const img = document.createElement('img');
+            img.src = imagem;
+            celulaImagem.appendChild(img);
+
+            // Colocar o nome do cachorro
+            const celulaNomeCachorro = linha.insertCell();
+            celulaNomeCachorro.textContent = nomeCachorro;
+
+            // Colocar o nome do dono
+            const celulaNomeDono = linha.insertCell();
+            celulaNomeDono.textContent = nomeDono;
+
+            // Colocar o telefone
+            const celulaTelefone = linha.insertCell();
+            celulaTelefone.textContent = telefone;
+
+            // Colocar o email
+            const celulaEmail = linha.insertCell();
+            celulaEmail.textContent = email;
+
+            // Colocar as ações
+            const celulaAcoes = linha.insertCell();
+            const divAcoes = document.createElement('div');
+            divAcoes.className = 'actions';
+
+            // Botões de ação: Editar e Excluir
+            const btnEditar = document.createElement('button');
+            btnEditar.className = 'action-button';
+            btnEditar.textContent = 'Editar';
+            btnEditar.onclick = function() {
+                editarCachorro({ nome: nomeCachorro });
+            };
+
+            const btnExcluir = document.createElement('button');
+            btnExcluir.className = 'action-button';
+            btnExcluir.textContent = 'Excluir';
+            btnExcluir.onclick = function() {
+                excluirCachorro(linha);
+            };
+
+            divAcoes.appendChild(btnEditar);
+            divAcoes.appendChild(btnExcluir);
+            celulaAcoes.appendChild(divAcoes);
+
+            
+            document.getElementById('nomeCachorro').value = '';
+            document.getElementById('nomeDono').value = '';
+            document.getElementById('telefone').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('imagem').value = '';
+
+            
+            closeModal();
+        }
+
+        // Função para editar um cachorro "UPDATE"
+        function editarCachorro(cachorro) {
+            alert(`Editar cachorro: ${cachorro.nome}`);
+        }
+
+        // Função para excluir um cachorro "DELETE"
+        function excluirCachorro(linha) {
+            if (confirm('Tem certeza que deseja excluir este cachorro?')) {
+                linha.remove();
+            }
+        }
+
+        // Função para abrir o modal
+        function openModal() {
+            document.getElementById('myModal').style.display = "flex";
+        }
+
+        // Função para fechar o modal
+        function closeModal() {
+            document.getElementById('myModal').style.display = "none";
+        }
+
+        
+        window.onload = carregarDados;
+    </script>
+</body>
+</html>
